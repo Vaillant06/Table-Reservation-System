@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>SIGN UP</title>
+
+    <style>
+        body {
+            font-family: 'Poppins';
+            min-height: 100vh;
+            background-image: url(https://media.istockphoto.com/id/1297364206/photo/elegant-restaurant-table-setting-service-for-reception-with-reserved-card.jpg?s=612x612&w=0&k=20&c=u1xdq9GCv4sHfZCilPz3lvOL9R4YYyE8UAE3KyXya8E=);
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-attachment: fixed;
+        }
+
+        h1 {
+            font-size: 48px;
+            font-weight: bold;
+        }
+
+        h2 {
+            font-size: 30px;
+            color:brown;
+        }
+
+        p {
+            color: brown;
+        }
+
+        a {
+            text-decoration: none;
+            color: blue;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            position: relative;
+            padding: 10px;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            height: max-content;
+            width:400px;
+            border: 1px solid;
+            border-radius: 10px;
+        }
+
+        input {
+            margin: 10px;
+            padding: 10px;
+            font-size: large;
+            height: 40px;
+            width: 300px;
+            border-radius:6px;
+        }
+
+        input:hover {
+            border: 3px solid brown;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        input:focus {
+            outline: none;
+            border: 3px solid brown;
+        }
+
+        input:not(:placeholder-shown) {
+            outline: none;
+            border: 3px solid brown;
+        }
+
+        button {
+            margin: 10px;
+            padding: 10px;
+            font-size: large;
+            border: none;
+            background-color: brown;
+            color: white;
+            height: 60px;
+            width: 320px;
+            border-radius:6px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        button:hover {
+            transform: scale(1.02);
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .success-message {
+            color: green;
+            font-size: 16px;
+            display: none;
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 16px;
+            display: none;
+            margin-bottom: 10px;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="container">
+
+        <h2>SIGN UP</h2>
+        <form action="/cgi-bin/signup.exe" method="GET">
+            <input type="text" id="username" name="username" placeholder="Username" required>
+            <input type="email" id="email" name="email" placeholder="Email" required>
+            <input type="tel" id="phone" name="phone" placeholder="Phone" pattern="[0-9]{10}" required>
+            <input type="password" id="password" name="password" placeholder="Password" required minlength="6">
+            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required minlength="6">
+            <button type="submit">Sign Up</button>
+            <p>Already have an account? <a href="Login.html">Login</a></p>
+        </form>  
+
+        <!-- Success and Error Messages placed above the form -->
+        <div id="successMessage" class="success-message">Account created successfully!</div>
+        <div id="errorMessage" class="error-message">Passwords do not match. Please try again.</div>
+
+    </div>
+
+    <script>
+        // Function to handle form submission
+        document.getElementById('signupForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent page reload on form submission
+
+            // Get the form values
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Hide success and error messages initially
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+
+            // Validate if passwords match
+            if (password !== confirmPassword) {
+                document.getElementById('errorMessage').style.display = 'block';
+                return;
+            }
+
+            // Simulate form submission success
+            // Ideally, you'd send this data to your server here
+
+            document.getElementById('successMessage').style.display = 'block';
+
+            // Redirect to the homepage after 2 seconds
+            setTimeout(function() {
+                window.location.href = 'Home.html'; // Redirect to the homepage
+            }, 2000);
+
+            // Clear form after submission
+            document.getElementById('signupForm').reset();
+        });
+    </script>
+</body>
+</html>

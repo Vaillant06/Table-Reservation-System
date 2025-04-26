@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>About Us - Aswin's Food Court</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: white;
+      color: #333;
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: white;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 999;
+    }
+
+    .nav-left {
+      font-size: 24px;
+      font-weight: bold;
+      color: #8B4513;
+    }
+
+    .nav-right {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #333;
+      padding: 8px 14px;
+      border-radius: 5px;
+      transition: 0.3s ease;
+    }
+
+    nav a:hover {
+      background-color: #eee;
+      color: brown;
+    }
+
+    nav ul li a.active {
+        background-color: white;
+        color: #8B5A2B;
+        font-weight: bold;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .about-container {
+      max-width: 900px;
+      margin: 120px auto 40px auto;
+      padding: 30px;
+      background-color: #8B4513;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      text-align: center;
+    }
+
+    .about-container h1 {
+      color: white;
+      margin-bottom: 20px;
+    }
+
+    .about-container p {
+      font-size: 18px;
+      line-height: 1.6;
+      color: white;
+      margin: 15px 0;
+    }
+
+    .about-features {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      margin-top: 30px;
+    }
+
+    .feature-box {
+      width: 250px;
+      background-color: white;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      margin: 15px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .feature-box:hover {
+      transform: scale(1.05);
+      background-color: #faf0e6;
+    }
+
+    .feature-box h3 {
+      color: brown;
+      margin-bottom: 10px;
+    }
+
+    .feature-box p {
+      color: brown;
+    }
+
+    footer {
+      background-color: #8B4513;
+      color: white;
+      text-align: center;
+      padding: 12px;
+      margin-top: 30px;
+    }
+
+    @media (max-width: 768px) {
+      .about-features {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-left">ASWIN'S FOOD COURT</div>
+    <div class="nav-right">
+      <a href="Home.html">Home</a>
+      <a href="cgi-bin/reservation.exe">Reserve a Table</a>
+      <a href="cgi-bin/profile.exe" id="profile-link">User Profile</a>
+      <a href="Contact Us.html">Contact Us</a>
+      <a href="About Us.html" class="active">About Us</a>
+      <a href="Login.html">Login</a>
+      <a href="Signup.html">SignUp</a>
+    </div>
+  </nav>
+
+  <div class="about-container">
+    <h1>About Us</h1>
+    <p>Welcome to <strong>Aswin's Food Court</strong> — your go-to table reservation system built by students for a seamless dining experience. Whether it’s a cozy dinner or a special celebration, we’ve made booking your table easier than ever!</p>
+
+    <p>Born from passion and powered by simplicity, our system is designed to reduce waiting time, manage reservations effortlessly, and enhance the restaurant experience for both customers and staff.</p>
+
+    <div class="about-features">
+      <div class="feature-box">
+        <h3>🎯 Our Mission</h3>
+        <p>To simplify dining experiences with fast, user-friendly, and reliable table booking.</p>
+      </div>
+      <div class="feature-box">
+        <h3>👨‍💻 Our Team</h3>
+        <p>A group of four passionate tech enthusiasts on a journey to build smart solutions.</p>
+      </div>
+      <div class="feature-box">
+        <h3>⭐ Our Vision</h3>
+        <p>To revolutionize the way people reserve tables — one click at a time.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Aswin's Food Court. All rights reserved.</p>
+  </footer>
+
+</body>
+</html>
