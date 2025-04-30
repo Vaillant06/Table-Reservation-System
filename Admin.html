@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard | Aswin's Food Court</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <style>
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            font-family: 'Poppins', sans-serif;
+            background-color: white;
+            color: #8B5A2B;
+            height: 100%;
+            text-align: center;
+        }
+
+        .wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background: #8B4513;
+            color: white;
+            padding: 15px 0;
+        }
+
+        header h1 {
+            margin-bottom: 10px;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        nav ul li {
+            display: inline-block;
+            margin: 0 10px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: 0.3s ease;
+        }
+
+        nav ul li a:hover {
+            background: white;
+            color: #8B5A2B;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        nav ul li a.active {
+            background-color: white;
+            color: #8B5A2B;
+            font-weight: bold;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .container {
+            flex: 1;
+            padding: 30px;
+            margin: 20px auto;
+            width: 90%;
+            max-width: 1200px;
+        }
+
+        h2 {
+            margin: 20px 0 10px;
+            color: #8B5A2B;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            margin-top: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            border: 1px solid #8B5A2B;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #8B4513;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: #f2f2f2;
+        }
+
+        /* Logout button */
+        .logout-button {
+            display: inline-block;
+            margin-top: 40px;
+            padding: 12px 25px;
+            background-color: #8B4513;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            text-decoration: none;
+            transition: 0.3s ease;
+        }
+
+        .logout-button:hover {
+            background-color: white;
+            color: #8B4513;
+            border: 2px solid #8B4513;
+        }
+
+        footer {
+            background: #8B4513;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <header>
+            <h1>Admin Dashboard - Aswin's Food Court</h1>
+            <nav>
+                <ul>
+                    <li><a href="Home.html">Home</a></li>
+                    <li><a href="Admin.html" class="active">Admin Dashboard</a></li>
+                    <li><a href="Home.html">Logout</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <div class="container">
+
+            <h2>Reservations</h2>
+
+            <h2>User Signups</h2>          
+            
+            <a href="Home.html" class="logout-button">Logout</a>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 Aswin's Food Court. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>
