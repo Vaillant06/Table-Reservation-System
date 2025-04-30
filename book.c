@@ -3,6 +3,45 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct WaitlistNode {
+    char name[100];
+    char phone[20];
+    char date[20];
+    char time[20];
+    char vip[10];
+    int people;
+    struct WaitlistNode* next;
+} WaitlistNode;
+
+WaitlistNode* front = NULL;
+WaitlistNode* rear = NULL;
+
+void enqueue_waitlist(const char* name, const char* phone, const char* date, const char* time, const char* vip, int people) {
+    WaitlistNode* new_node = (WaitlistNode*)malloc(sizeof(WaitlistNode));
+    if (!new_node) return;
+
+    strcpy(new_node->name, name);
+    strcpy(new_node->phone, phone);
+    strcpy(new_node->date, date);
+    strcpy(new_node->time, time);
+    strcpy(new_node->vip, vip);
+    new_node->people = people;
+    new_node->next = NULL;
+
+    if (rear == NULL) {
+        front = rear = new_node;
+    } else {
+        rear->next = new_node;
+        rear = new_node;
+    }
+
+    FILE* fp = fopen("waitlist.txt", "a");
+    if (fp) {
+        fprintf(fp, "%s|%s|%s|%s|%s|%d\n", name, phone, date, time, vip, people);
+        fclose(fp);
+    }
+}
+
 void urldecode(char *src) {
     char *dst = src;
     while (*src) {
@@ -50,29 +89,108 @@ int main() {
 
     char name[100], phone[50], vip[10], date[20], time[20], people[5], seats[500];
     parse_form_data(form_data, name, phone, vip, date, time, people, seats);
+    
+    if (strcmp(seats, "waitlist") == 0) {
+    enqueue_waitlist(name, phone, date, time, vip, atoi(people));
 
-    // Save to file
+    printf("<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'>");
+    printf("<meta name='viewport' content='width=device-width, initial-scale=1.0'>");
+    printf("<title>Waitlist Confirmation</title>");
+    printf("<script>alert('You have been added to the waitlist.');</script>");
+    printf("<link href='https://fonts.googleapis.com/css2?family=Poppins:wght@300;500&display=swap' rel='stylesheet'>");
+    printf("<style>");
+    printf("body { font-family: 'Poppins', sans-serif; background-color: #fff8f0; margin: 0; padding: 0; text-align: center; }");
+    printf(".card { background: white; max-width: 600px; margin: 50px auto; padding: 30px; border-radius: 12px; box-shadow: 0 0 12px rgba(0,0,0,0.2); }");
+    printf("h2 { color: #8B4513; margin-bottom: 20px; }");
+    printf("p { margin: 10px 0; font-size: 18px; color: #444; }");
+    printf(".btn-container { margin-top: 30px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }");
+    printf(".btn { background: #8B4513; color: white; padding: 12px 25px; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; text-decoration: none; transition: 0.3s ease; }");
+    printf(".btn:hover { background: lightsalmon; color: #222; }");
+    printf("</style></head><body>");
+
+    printf("<div class='card'>");
+    printf("<h2>Added to Waitlist</h2>");
+    printf("<p>You have been successfully added to the waitlist for:</p>");
+    printf("<p><strong>Date:</strong> %s</p>", date);
+    printf("<p><strong>Time:</strong> %s</p>", time);
+    printf("<p><strong>People:</strong> %d</p>", atoi(people));
+    printf("<div class='btn-container'>");
+    printf("<a href='/cgi-bin/profile.exe' class='btn'>Go to Profile</a>");
+    printf("</div></div>");
+    printf("</body></html>");
+
+    free(form_data);
+    return 0;
+}
+
+    int total_seats_booked = 0;
+	FILE *readfile = fopen("reservations.txt", "r");
+	if (readfile) {
+	    char line[1024];
+	    while (fgets(line, sizeof(line), readfile)) {
+	        char r_name[100], r_phone[50], r_vip[10], r_date[20], r_time[20], r_seats[500];
+	        sscanf(line, "%[^|]|%[^|]|%[^|]|%[^|]|%[^|]|%[^\n]", r_name, r_phone, r_vip, r_date, r_time, r_seats);
+	
+	        if (strcmp(r_date, date) == 0 && strcmp(r_time, time) == 0) {
+	            int seat_count = 1, i; // default is 1 seat
+	            for (i = 0; r_seats[i]; i++) {
+	                if (r_seats[i] == ',') seat_count++;
+	            }
+	            total_seats_booked += seat_count;
+	        }
+	    }
+	    fclose(readfile);
+	}
+
+    int requested_seats = atoi(people);
+	if (total_seats_booked + requested_seats > 32){
+        enqueue_waitlist(name, phone, date, time, vip, atoi(people));
+        printf("<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'>");
+	printf("<meta name='viewport' content='width=device-width, initial-scale=1.0'>");
+	printf("<title>Waitlist Confirmation</title>");
+	printf("<link href='https://fonts.googleapis.com/css2?family=Poppins:wght@300;500&display=swap' rel='stylesheet'>");
+	printf("<style>");
+	printf("body { font-family: 'Poppins', sans-serif; background-color: #fff8f0; margin: 0; padding: 0; text-align: center; }");
+	printf(".card { background: white; max-width: 600px; margin: 50px auto; padding: 30px; border-radius: 12px; box-shadow: 0 0 12px rgba(0,0,0,0.2); }");
+	printf("h2 { color: #8B4513; margin-bottom: 20px; }");
+	printf("p { margin: 10px 0; font-size: 18px; color: #444; }");
+	printf(".btn-container { margin-top: 30px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }");
+	printf(".btn { background: #8B4513; color: white; padding: 12px 25px; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; text-decoration: none; transition: 0.3s ease; }");
+	printf(".btn:hover { background: lightsalmon; color: #222; }");
+	printf("</style></head><body>");
+	
+	printf("<div class='card'>");
+	printf("<h2>Added to Waitlist</h2>");
+	printf("<p>All seats are currently booked for your selected date and time.</p>");
+	printf("<p>You have been successfully added to the waitlist.</p>");
+	printf("<div class='btn-container'>");
+	printf("<a href='/cgi-bin/profile.exe' class='btn'>Go to Profile</a>");
+	printf("</div></div>");
+	printf("</body></html>");
+
+        free(form_data);
+        return 0;
+    }
+
     FILE *file = fopen("reservations.txt", "a");
     if (file) {
-        fprintf(file, "%s|%s|%s|%s|%s|%s\n", name, phone, vip, date, time, seats);  // Seats are now comma-separated
+        fprintf(file, "%s|%s|%s|%s|%s|%s\n", name, phone, vip, date, time, seats);
         fclose(file);
     }
-	
-	// URL-encode seats (replace , with %2C)
-	char encoded_seats[300] = "";
-	int i, j = 0;
-	for (i = 0; seats[i] != '\0'; i++) {
-	    if (seats[i] == ',') {
-	        encoded_seats[j++] = '%';
-	        encoded_seats[j++] = '2';
-	        encoded_seats[j++] = 'C';
-	    } else {
-	        encoded_seats[j++] = seats[i];
-	    }
-	}
-	encoded_seats[j] = '\0';
 
-    // Show confirmation page
+    char encoded_seats[300] = "";
+    int i, j = 0;
+    for (i = 0; seats[i] != '\0'; i++) {
+        if (seats[i] == ',') {
+            encoded_seats[j++] = '%';
+            encoded_seats[j++] = '2';
+            encoded_seats[j++] = 'C';
+        } else {
+            encoded_seats[j++] = seats[i];
+        }
+    }
+    encoded_seats[j] = '\0';
+
     printf("<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'>");
     printf("<meta name='viewport' content='width=device-width, initial-scale=1.0'>");
     printf("<title>Booking Confirmation</title>");
@@ -96,12 +214,11 @@ int main() {
     printf("<p><strong>Time:</strong> %s</p>", time);
     printf("<p><strong>Selected Seats:</strong> %s</p>", seats);
     printf("<div class='btn-container'>");
-	printf("<a href='/cgi-bin/profile.exe' class='btn'>Confirm Booking</a>");
-	printf("<a href='/cgi-bin/reservation.exe?seats=%s&date=%s&time=%s&people=%s' class='btn'>Update Again</a>", encoded_seats, date, time, people);
-	printf("</div></div>");
-
+    printf("<a href='/cgi-bin/profile.exe' class='btn'>Confirm Booking</a>");
+    printf("<a href='/cgi-bin/reservation.exe?seats=%s&date=%s&time=%s&people=%s' class='btn'>Update Again</a>", encoded_seats, date, time, people);
     printf("</div></div>");
 
+    printf("</div></div>");
     printf("</body></html>");
 
     free(form_data);
