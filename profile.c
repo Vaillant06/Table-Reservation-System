@@ -3,9 +3,7 @@
 #include <string.h>
 #include <time.h>
 
-
-/* For Profile display,
- File -> Struct -> Webpage */
+#define MAX_LINE 512
 
 typedef struct Reservation {
     char username[50];
@@ -35,12 +33,9 @@ void parse_datetime(const char *date_str, const char *time_str, struct tm *dt_tm
     dt_tm->tm_isdst = -1;
 }
 
-
 int is_future_date(const char *date_str, const char *time_str) {
     time_t now = time(NULL);
-
-    struct tm *now_tm_ptr = localtime(&now);
-    struct tm now_tm = *now_tm_ptr;
+    struct tm now_tm = *localtime(&now);
 
     struct tm res_tm;
     parse_datetime(date_str, time_str, &res_tm);
@@ -48,28 +43,17 @@ int is_future_date(const char *date_str, const char *time_str) {
     time_t res_time = mktime(&res_tm);
     time_t now_time = mktime(&now_tm);
 
-    if (difftime(res_time, now_time) > 0) {
-        return 1; // Future
-    } else {
-        return 0; // Past
-    }
+    return difftime(res_time, now_time) > 0;
 }
-
 
 void url_decode(char *dst, const char *src) {
     char a, b;
     while (*src) {
-        if ((*src == '%') &&
-            ((a = src[1]) && (b = src[2])) &&
-            (isxdigit(a) && isxdigit(b))) {
-            if (a >= 'a') a -= 'a'-'A';
-            if (a >= 'A') a -= ('A' - 10);
-            else a -= '0';
-            if (b >= 'a') b -= 'a'-'A';
-            if (b >= 'A') b -= ('A' - 10);
-            else b -= '0';
-            *dst++ = 16*a+b;
-            src+=3;
+        if ((*src == '%') && ((a = src[1]) && (b = src[2])) && (isxdigit(a) && isxdigit(b))) {
+            a = (a >= 'a') ? a - 'a' + 10 : (a >= 'A') ? a - 'A' + 10 : a - '0';
+            b = (b >= 'a') ? b - 'a' + 10 : (b >= 'A') ? b - 'A' + 10 : b - '0';
+            *dst++ = 16 * a + b;
+            src += 3;
         } else if (*src == '+') {
             *dst++ = ' ';
             src++;
@@ -77,7 +61,7 @@ void url_decode(char *dst, const char *src) {
             *dst++ = *src++;
         }
     }
-    *dst++ = '\0';
+    *dst = '\0';
 }
 
 void load_reservations(const char* username) {
@@ -88,43 +72,31 @@ void load_reservations(const char* username) {
     while (fgets(line, sizeof(line), file)) {
         Reservation* new_node = (Reservation*)malloc(sizeof(Reservation));
         sscanf(line, "%49[^|]|%49[^|]|%19[^|]|%49[^|]|%49[^|]|%299[^\n]",
-	    new_node->username, new_node->phone, new_node->vip,
-	    new_node->date, new_node->time, new_node->seats);
+            new_node->username, new_node->phone, new_node->vip,
+            new_node->date, new_node->time, new_node->seats);
 
-	    if (strcmp(username, new_node->username) != 0) {
-	        free(new_node);
-	        continue;
-	    }
-	
-	    new_node->prev = tail;
-	    new_node->next = NULL;
-	    if (tail) tail->next = new_node;
-	    else head = new_node;
-	    tail = new_node;
+        if (strcmp(username, new_node->username) != 0) {
+            free(new_node);
+            continue;
+        }
+
+        new_node->prev = tail;
+        new_node->next = NULL;
+        if (tail) tail->next = new_node;
+        else head = new_node;
+        tail = new_node;
     }
     fclose(file);
 }
 
 void cancel_reservation(const char *username, const char *date, const char *time) {
     FILE *file = fopen("reservations.txt", "r");
-    if (!file) {
-        perror("Failed to open reservations.txt");
-        return;
-    }
-
     FILE *temp = fopen("temp.txt", "w");
-    if (!temp) {
-        perror("Failed to create temp.txt");
-        fclose(file);
-        return;
-    }
+    if (!file || !temp) return;
 
     char line[512];
     while (fgets(line, sizeof(line), file)) {
-        // Declare local variables inside the loop for better memory locality
         char res_username[50], phone[20], vip[10], res_date[20], res_time[20], seats[300];
-
-        // Parse line carefully
         sscanf(line, "%49[^|]|%19[^|]|%9[^|]|%19[^|]|%19[^|]|%299[^\n]",
             res_username, phone, vip, res_date, res_time, seats);
 
@@ -132,67 +104,93 @@ void cancel_reservation(const char *username, const char *date, const char *time
         trim_newline(res_date);
         trim_newline(res_time);
 
-        // Check if current line matches the reservation to cancel
-        if (strcmp(username, res_username) == 0 &&
-            strcmp(date, res_date) == 0 &&
-            strcmp(time, res_time) == 0) {
-            // Match found: skip writing this line (cancel it)
+        if (strcmp(username, res_username) == 0 && strcmp(date, res_date) == 0 && strcmp(time, res_time) == 0)
             continue;
-        }
 
-        // Write all other reservations back into temp.txt
         fputs(line, temp);
     }
 
     fclose(file);
     fclose(temp);
-
-    // Remove original file
-    if (remove("reservations.txt") != 0) {
-        perror("Error deleting original reservations.txt");
-    }
-
-    // Rename temp.txt to reservations.txt
-    if (rename("temp.txt", "reservations.txt") != 0) {
-        perror("Error renaming temp.txt to reservations.txt");
-    }
+    remove("reservations.txt");
+    rename("temp.txt", "reservations.txt");
 }
 
+void cancel_waitlist_entry(const char *username, const char *date, const char *time) {
+    FILE *fp = fopen("waitlist.txt", "r");
+    FILE *temp = fopen("temp_waitlist.txt", "w");
+    if (!fp || !temp) return;
+
+    char line[256];
+    while (fgets(line, sizeof(line), fp)) {
+        char original[256];
+        strcpy(original, line);
+
+        char wname[100], wphone[20], wdate[20], wtime[20], wvip[10];
+        int wpeople;
+        sscanf(line, "%99[^|]|%19[^|]|%19[^|]|%19[^|]|%9[^|]|%d",
+               wname, wphone, wdate, wtime, wvip, &wpeople);
+
+        trim_newline(wname);
+        trim_newline(wphone);
+        trim_newline(wdate);
+        trim_newline(wtime);
+        trim_newline(wvip);
+
+        if (strcmp(wname, username) == 0 &&
+            strcmp(wdate, date) == 0 &&
+            strcmp(wtime, time) == 0 &&
+            strcmp(wphone, "") != 0 &&
+            strcmp(wvip, "") != 0) {
+            continue; // Skip exact match of all fields
+        }
+
+        fputs(original, temp);
+    }
+    fclose(fp);
+    fclose(temp);
+    remove("waitlist.txt");
+    rename("temp_waitlist.txt", "waitlist.txt");
+}
 
 int main() {
     printf("Content-Type: text/html\r\n\r\n");
     fflush(stdout);
 
     char username[50] = "", email[50] = "", phone[20] = "", membership[20] = "Normal Member";
-    
-   char *method = getenv("REQUEST_METHOD");
-if (method && strcmp(method, "POST") == 0) {
-    int len = 0;
-    char *content_len = getenv("CONTENT_LENGTH");
-    if (content_len) len = atoi(content_len);
 
-    char post_data[1024] = "";
-    fread(post_data, 1, len, stdin);
+    char *method = getenv("REQUEST_METHOD");
+    if (method && strcmp(method, "POST") == 0) {
+        int len = 0;
+        char *content_len = getenv("CONTENT_LENGTH");
+        if (content_len) len = atoi(content_len);
 
-    char date_encoded[50] = "", time_encoded[50] = "";
-    sscanf(post_data, "date=%49[^&]&time=%49[^&]", date_encoded, time_encoded);
+        char post_data[1024] = "";
+        fread(post_data, 1, len, stdin);
 
-    char date[50], time[50];
-    url_decode(date, date_encoded);
-    url_decode(time, time_encoded);
+        char date_encoded[50] = "", time_encoded[50] = "", waitlist_flag[10] = "";
+        sscanf(post_data, "date=%49[^&]&time=%49[^&]&waitlist=%9[^&]", date_encoded, time_encoded, waitlist_flag);
 
-    FILE *session = fopen("session.txt", "r");
-    if (session && fgets(username, sizeof(username), session)) {
-        trim_newline(username);
-        fclose(session);
+        char date[50], time[50];
+        url_decode(date, date_encoded);
+        url_decode(time, time_encoded);
 
-        cancel_reservation(username, date, time);
+        FILE *session = fopen("session.txt", "r");
+        if (session && fgets(username, sizeof(username), session)) {
+            trim_newline(username);
+            fclose(session);
 
-        printf("<script>alert('Reservation canceled successfully!'); window.location.href='/cgi-bin/Profile.exe';</script>");
-        return 0;
+            if (strcmp(waitlist_flag, "yes") == 0) {
+                cancel_waitlist_entry(username, date, time);
+                printf("<script>alert('Waitlist entry cancelled successfully!'); window.location.href='/cgi-bin/Profile.exe';</script>");
+            } else {
+                cancel_reservation(username, date, time);
+                printf("<script>alert('Reservation cancelled successfully!'); window.location.href='/cgi-bin/Profile.exe';</script>");
+            }
+            return 0;
+        }
     }
-}
-
+    
     FILE *session = fopen("session.txt", "r");
     if (!session || !fgets(username, sizeof(username), session)) {
         printf("<!DOCTYPE html><html lang='en'><head>");
@@ -223,16 +221,25 @@ if (method && strcmp(method, "POST") == 0) {
         return 1;
     }
 
-    char line[256], file_username[50], file_email[50], file_phone[20], file_password[50];
+    char line[512], file_username[50], file_email[50], file_phone[20], file_password[50], file_role[10], file_vip[10];
+
 	int found = 0;
 	while (fgets(line, sizeof(line), users)) {
-	    sscanf(line, "%49[^|]|%49[^|]|%19[^|]|%49[^|]|%*s", file_username, file_email, file_phone, file_password);
+		sscanf(line, "%49[^|]|%49[^|]|%19[^|]|%49[^|]|%49[^|]|%49[^\n]", file_username, file_email, file_phone, file_password, file_role, file_vip);
 	    trim_newline(file_username);
 	    trim_newline(file_password);
 	
 	    if (strcmp(username, file_username) == 0) {
 	        strcpy(email, file_email);
 	        strcpy(phone, file_phone);
+	        
+	        if (strcmp(file_vip, "Yes") == 0) {
+		        strcpy(membership, "VIP Member");
+		    } 
+			else {
+		        strcpy(membership, "Normal Member");
+		    }
+		    
 	        found = 1;
 	        break;
 	    }
@@ -262,7 +269,6 @@ if (method && strcmp(method, "POST") == 0) {
 
     load_reservations(username);
 
-    // HTML and Styles
     printf("<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'>");
     printf("<meta name='viewport' content='width=device-width, initial-scale=1.0'>");
     printf("<title>User Profile</title>");
@@ -313,7 +319,13 @@ if (method && strcmp(method, "POST") == 0) {
     printf("</div>");
 
     printf("<div class='right-column'><h2>User Profile</h2>");
-    printf("<div class='info-group'><label>Full Name</label><p>%s</p></div>", username);
+	printf("<div class='info-group'><label>Full Name</label><p>");
+	if (strcmp(membership, "VIP Member") == 0) {
+	    printf("%s &#11088;", username);
+	} else {
+	    printf("%s", username);
+	}
+	printf("</p></div>");
     printf("<div class='info-group'><label>Email</label><p>%s</p></div>", email);
     printf("<div class='info-group'><label>Phone</label><p>%s</p></div>", phone);
     printf("<div class='info-group'><label>Membership</label><p>%s</p></div>", membership);
@@ -330,7 +342,7 @@ if (method && strcmp(method, "POST") == 0) {
 		    printf("<div class='reservation-item' style='display: flex; justify-content: space-between; align-items: center;'>");
 		
 		    if (future) {
-		        printf("<div>%s - %s | Seats: %s</div>", curr->date, curr->time, curr->seats);
+		        printf("<div><strong>%s - %s</strong>| Seats: %s</div>", curr->date, curr->time, curr->seats);
 		        printf("<form method='POST' action='/cgi-bin/Profile.exe' style='margin:0;' onsubmit=\"return confirm('Are you sure you want to cancel this reservation?');\">");
 		        printf("<input type='hidden' name='date' value='%s'>", curr->date);
 		        printf("<input type='hidden' name='time' value='%s'>", curr->time);
@@ -345,9 +357,40 @@ if (method && strcmp(method, "POST") == 0) {
 		
 	}
 	printf("</div>");
+	
+	printf("<div class='section-title'>Waitlist Reservations</div>");
+	printf("<div class='reservation-history'>");
+	
+	int hasWaitlist = 0;
+	FILE *waitfile = fopen("waitlist.txt", "r");
+	if (waitfile) {
+	    char line[MAX_LINE];
+	    while (fgets(line, sizeof(line), waitfile)) {
+	        char wname[100], wphone[20], wdate[20], wtime[20], wvip[10], wpeople[30];
+	        sscanf(line, "%99[^|]|%19[^|]|%19[^|]|%19[^|]|%9[^|]|%[^\n]", wname, wphone, wvip, wdate, wtime, wpeople);
+	        if (strcmp(wname, username) == 0) {
+	            hasWaitlist = 1;
+	            printf("<div class='reservation-item' style='display: flex; justify-content: space-between; align-items: center;'>");
+				printf("<div><strong>%s - %s</strong> | People: %s | VIP: %s</div>", wdate, wtime, wpeople, wvip);
+				printf("<form method='POST' action='/cgi-bin/Profile.exe' style='margin:0;' onsubmit=\"return confirm('Cancel this waitlist entry?');\">");
+				printf("<input type='hidden' name='date' value='%s'>", wdate);
+				printf("<input type='hidden' name='time' value='%s'>", wtime);
+				printf("<input type='hidden' name='waitlist' value='yes'>");
+				printf("<input type='submit' value='Cancel' style='background-color:red; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;'>");
+				printf("</form>");
+				printf("</div>");
+	        }
+	    }
+	    fclose(waitfile);
+	}
+	if (!hasWaitlist) {
+	    printf("<div class='reservation-item'>You are not currently on the waitlist.</div>");
+	}
+	printf("</div>");
+
+
     printf("<a href='/cgi-bin/reservation.exe' class='btn-common'>Reserve Table</a>");
     printf("</div></div></body></html>");
 
     return 0;
 }
-
