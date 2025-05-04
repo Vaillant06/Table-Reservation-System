@@ -8,7 +8,7 @@ typedef struct User {
     char phone[20];
     char password[100];
     char role[10];
-    char vip[10];  // added VIP field
+    char vip[10]; 
     struct User *next;
 } User;
 
@@ -20,8 +20,8 @@ User* createUser(char username[], char email[], char phone[], char password[], c
     strcpy(newUser->email, email);
     strcpy(newUser->phone, phone);
     strcpy(newUser->password, password);
-    strcpy(newUser->role, "user");  // always signup as user
-    strcpy(newUser->vip, vip);      // save vip field
+    strcpy(newUser->role, "user");  
+    strcpy(newUser->vip, vip);     
     newUser->next = NULL;
     return newUser;
 }
@@ -85,18 +85,36 @@ void parseData(char* data, char* username, char* email, char* phone, char* vip, 
 void printSuccessPage() {
     printf("Content-Type: text/html\n\n");
     printf("<html><head><meta http-equiv='refresh' content='2;url=../Home.html'>");
-    printf("<title>Signup Success</title></head><body>");
-    printf("<h2 style='color:green;'>Signup Successful! Redirecting to Home...</h2>");
+    printf("<title>Signup Success</title>");
+    printf("<style>");
+    printf("body { margin: 0; padding: 0; font-family: Arial, sans-serif; }");
+    printf(".centered-box { display: flex; justify-content: center; align-items: center; height: 100vh; }");
+    printf(".box { background-color: rgb(34, 157, 34); color: white; padding: 30px; border-radius: 8px; width: 500px; text-align: center; }");
+    printf("</style></head><body>");
+    printf("<div class='centered-box'><div class='box'><h2>Signup Successful!</h2><p>Redirecting to Home...</p></div></div>");
     printf("</body></html>");
 }
 
+
 void printErrorPage() {
     printf("Content-Type: text/html\n\n");
-    printf("<html><head><title>Signup Error</title></head><body>");
-    printf("<h2 style='color:red;'>Passwords do not match!</h2>");
+    printf("<html><head><title>Signup Error</title>");
+    printf("<style>");
+    printf("body { margin: 0; padding: 0; font-family: Arial, sans-serif; }");
+    printf(".centered-box { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f8f9fa; }");
+    printf(".box { background-color: rgb(220, 53, 69); color: white; padding: 30px; border-radius: 8px; width: 500px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }");
+    printf("a { color: #fff; text-decoration: underline; display: inline-block; margin-top: 10px; }");
+    printf(".emoji { font-size: 40px; margin-bottom: 10px; }");
+    printf("</style></head><body>");
+    printf("<div class='centered-box'>");
+    printf("<div class='box'>");
+    printf("<div class='emoji'>?</div>");
+    printf("<h2>Passwords do not match!</h2>");
     printf("<a href='../Signup.html'>Back to Signup</a>");
+    printf("</div></div>");
     printf("</body></html>");
 }
+
 
 int main() {
     char *data;
@@ -123,4 +141,3 @@ int main() {
 
     return 0;
 }
-
