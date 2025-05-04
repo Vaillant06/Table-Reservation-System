@@ -30,4 +30,3 @@ int main() {
     printf("</body></html>");
     return 0;
 }
-
