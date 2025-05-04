@@ -9,14 +9,14 @@ typedef struct WaitlistNode {
     char date[20];
     char time[20];
     char vip[10];
-    int people;
+    char people[30];
     struct WaitlistNode* next;
 } WaitlistNode;
 
 WaitlistNode* front = NULL;
 WaitlistNode* rear = NULL;
 
-void enqueue_waitlist(const char* name, const char* phone, const char* date, const char* time, const char* vip, int people) {
+void enqueue_waitlist(const char* name, const char* phone, const char* date, const char* time, const char* vip, const char* people) {
     WaitlistNode* new_node = (WaitlistNode*)malloc(sizeof(WaitlistNode));
     if (!new_node) return;
 
@@ -25,7 +25,7 @@ void enqueue_waitlist(const char* name, const char* phone, const char* date, con
     strcpy(new_node->date, date);
     strcpy(new_node->time, time);
     strcpy(new_node->vip, vip);
-    new_node->people = people;
+    strcpy(new_node->people,people);
     new_node->next = NULL;
 
     if (rear == NULL) {
@@ -37,7 +37,7 @@ void enqueue_waitlist(const char* name, const char* phone, const char* date, con
 
     FILE* fp = fopen("waitlist.txt", "a");
     if (fp) {
-        fprintf(fp, "%s|%s|%s|%s|%s|%d\n", name, phone, date, time, vip, people);
+        fprintf(fp, "%s|%s|%s|%s|%s|%s\n", name, phone, vip, date, time, people);
         fclose(fp);
     }
 }
@@ -91,7 +91,7 @@ int main() {
     parse_form_data(form_data, name, phone, vip, date, time, people, seats);
     
     if (strcmp(seats, "waitlist") == 0) {
-    enqueue_waitlist(name, phone, date, time, vip, atoi(people));
+    enqueue_waitlist(name, phone, date, time, vip, people);
 
     printf("<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'>");
     printf("<meta name='viewport' content='width=device-width, initial-scale=1.0'>");
@@ -144,7 +144,7 @@ int main() {
 
     int requested_seats = atoi(people);
 	if (total_seats_booked + requested_seats > 32){
-        enqueue_waitlist(name, phone, date, time, vip, atoi(people));
+        enqueue_waitlist(name, phone, date, time, vip, people);
         printf("<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'>");
 	printf("<meta name='viewport' content='width=device-width, initial-scale=1.0'>");
 	printf("<title>Waitlist Confirmation</title>");
@@ -224,4 +224,3 @@ int main() {
     free(form_data);
     return 0;
 }
-
