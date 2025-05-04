@@ -10,6 +10,7 @@
 #define MAX_PHONE 20
 #define MAX_DATE 20
 #define MAX_TIME 20
+#define MZAX_VIP 20
 
 typedef struct {
     int seat_no;
@@ -71,9 +72,10 @@ int is_seat_booked(int seat_no, const char* date, const char* time) {
 }
 
 int main() {
-    printf("Content-Type: text/html\r\n\r\n");
+	printf("Content-Type: text/html\r\n\r\n");
 
-    char username[MAX_NAME] = "", phone[MAX_PHONE] = "";
+    char username[MAX_NAME] = "", phone[MAX_PHONE] = "", vip[10] = "";
+
     FILE *session = fopen("session.txt", "r");
     if (!session || !fgets(username, sizeof(username), session)) {
         printf("<html><body><h2>Session not found. Please <a href='/Login.html'>login</a>.</h2></body></html>");
@@ -84,11 +86,12 @@ int main() {
 
     FILE *users = fopen("users.txt", "r");
     if (users) {
-        char line[256], file_username[MAX_NAME], file_email[50], file_phone[MAX_PHONE], password[50];
+        char line[256], file_username[MAX_NAME], file_email[50], file_phone[MAX_PHONE], password[50], file_vip[50], role[10];
         while (fgets(line, sizeof(line), users)) {
-            sscanf(line, "%49[^|]|%49[^|]|%19[^|]|%49[^]", file_username, file_email, file_phone, password);
+            sscanf(line, "%49[^|]|%49[^|]|%19[^|]|%49[^|]|%49[^|]|%49[^|]", file_username, file_email, file_phone, password, role, file_vip);
             if (strcmp(file_username, username) == 0) {
                 strcpy(phone, file_phone);
+                strcpy(vip, file_vip); 
                 break;
             }
         }
@@ -155,11 +158,12 @@ int main() {
     printf("</div>");
 
     printf("<div class='form-section'><h2>Book Your Table</h2>");
-    printf("<form method='POST' action='/cgi-bin/book.exe' onsubmit='return validateForm()'>");
+    printf("<form id='reservationForm' method='POST' action='/cgi-bin/book.exe' onsubmit='return validateForm()'>");
     printf("<div class='form-group'><label>Full Name</label><input type='text' name='name' value='%s' readonly></div>", username);
     printf("<div class='form-group'><label>Phone Number</label><input type='text' name='phone' value='%s' readonly></div>", phone);
-    printf("<div class='form-group'><label>VIP Member</label><input type='text' name='vip' value='No' readonly></div>");
-    printf("<div class='form-group'><label>Date</label><input type='date' name='date' required min='%s'></div>", today);
+    printf("<div class='form-group'><label>VIP Member</label><input type='text' name='vip' value='%s' readonly></div>", vip);
+    int max_days = (strcmp(vip, "Yes")) ? 7 : 2;
+	printf("<div class='form-group'><label>Date</label><input type='date' name='date' id='dateField' required min='%s'></div>", today);
     printf("<div class='form-group'><label>Time</label><select name='time' required>");
     for (hour = 10; hour <= 21; hour++) {
         printf("<option value='%02d:00'>%02d:00</option>", hour, hour);
@@ -240,10 +244,42 @@ int main() {
 	printf("    document.getElementById('selectedSeats').value = seats;\n");
 	printf("  }\n");
 	printf("}\n");
+	
+	printf("document.querySelector('input[name=\"people\"]').addEventListener('change', () => {\n");
+	printf("  updateSeatAvailability();\n");
+	printf("  let people = parseInt(document.querySelector('input[name=\"people\"]').value);\n");
+	printf("  let selectedDate = document.querySelector('input[name=\"date\"]').value;\n");
+	printf("  let selectedTime = document.querySelector('select[name=\"time\"]').value;\n");
+	printf("  if (!selectedDate || !selectedTime || !people) return;\n");
+	printf("  let availableSeats = 0;\n");
+	printf("  document.querySelectorAll('.seat').forEach(seat => {\n");
+	printf("    let sid = parseInt(seat.dataset.id);\n");
+	printf("    let isBooked = bookedSeats.some(bs => bs.seat === sid && bs.date === selectedDate && bs.time === selectedTime);\n");
+	printf("    if (!isBooked) availableSeats++;\n");
+	printf("  });\n");
+	printf("if (availableSeats < people) {\n");
+	printf("    let choice = confirm(`Only ${availableSeats} seat(s) are available, but ${people} requested.\nClick OK to join the waitlist, or Cancel to pick another date or time.`);\n");
+	printf("    if (choice) {\n");
+	printf("        document.getElementById('selectedSeats').value = 'waitlist';\n");
+	printf("        document.getElementById('reservationForm').submit();\n");
+	printf("    } else {\n");
+	printf("        alert('Please select a different date or time.');\n");
+	printf("        document.querySelector('input[name=\"date\"]').focus();\n");
+	printf("    }\n");
+	printf("}\n");
+	printf("});\n");
+	printf("window.addEventListener('load', () => {\n");
+	
+	printf("  const today = new Date();\n");
+	printf("  const maxDays = %d;\n", max_days);
+	printf("  const maxDate = new Date(today);\n");
+	printf("  maxDate.setDate(today.getDate() + maxDays);\n");
+	printf("  const formatDate = d => d.toISOString().split('T')[0];\n");
+	printf("  document.getElementById('dateField').setAttribute('max', formatDate(maxDate));\n");
+	printf("});\n");
 
 	printf("</script>");
 
     printf("</body></html>");
     return 0;
 }
-
